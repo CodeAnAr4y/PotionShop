@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Лавка Зельевара - Магические зелья</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#6b21a8" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      .app-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #6b21a8 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+
+      .app-loading .spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(245, 158, 11, 0.3);
+        border-top-color: #f59e0b;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .app-loading .text {
+        margin-top: 20px;
+        color: #e9d5ff;
+        font-family: 'Cinzel', serif;
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+      }
+
+      .app-loading .potion {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        animation: float 2s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <app-root>
+      <div class="app-loading">
+        <div class="potion">🧪</div>
+        <div class="spinner"></div>
+        <div class="text">Brewing...</div>
+      </div>
+    </app-root>
+  </body>
+</html>

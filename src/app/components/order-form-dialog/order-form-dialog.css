@@ -1,0 +1,22 @@
+:host ::ng-deep .magic-dialog .p-dialog-content {
+  padding: 0;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #6b21a8 100%);
+}
+
+:host ::ng-deep .magic-dialog .p-dialog-header {
+  background: linear-gradient(135deg, #6b21a8 0%, #a855f7 100%);
+  color: white;
+  border-bottom: 2px solid #f59e0b;
+}
+
+:host ::ng-deep .magic-dialog .p-dialog-header .p-dialog-header-icons button {
+  color: white;
+}
+
+:host ::ng-deep .magic-dialog .p-dialog-header .p-dialog-header-icons button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:host ::ng-deep .p-button-text.p-button-secondary {
+  color: white;
+}

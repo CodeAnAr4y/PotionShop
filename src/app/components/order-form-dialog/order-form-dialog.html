@@ -1,0 +1,16 @@
+<p-dialog
+  [header]="order() ? 'Редактирование заказа' : 'Новый заказ зелья'"
+  [visible]="visible()"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="true"
+  [style]="{ width: '95vw', maxWidth: '1200px' }"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="true"
+  [closeOnEscape]="true"
+  styleClass="magic-dialog"
+  contentStyleClass="p-0"
+>
+  <app-order-form [order]="order()" (saved)="onSaved($event)" (cancelled)="onCancelled()">
+  </app-order-form>
+</p-dialog>

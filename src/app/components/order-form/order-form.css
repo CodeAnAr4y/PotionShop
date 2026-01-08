@@ -1,0 +1,31 @@
+.order-form-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .p-inputtext,
+:host ::ng-deep .p-textarea,
+:host ::ng-deep .p-select,
+:host ::ng-deep .p-datepicker {
+  width: 100%;
+}
+
+:host ::ng-deep .p-datepicker input {
+  width: 100%;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .order-form-container {
+    padding: 10px;
+  }
+}

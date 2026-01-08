@@ -1,0 +1,26 @@
+.ingredient-input-container {
+  position: relative;
+}
+
+.ingredient-input-container::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  background: linear-gradient(180deg, #a855f7, #f59e0b);
+  border-radius: 4px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .p-autocomplete-input,
+:host ::ng-deep .p-inputnumber-input,
+:host ::ng-deep .p-select {
+  width: 100%;
+}

@@ -1,0 +1,229 @@
+<div class="orders-table-container">
+  <!-- Heading and statistics -->
+  <div class="mb-6">
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
+      <div>
+        <h2 class="magic-title text-3xl mb-2">
+          <i class="pi pi-list mr-2"></i>
+          Книга заказов
+        </h2>
+        <p class="text-purple-200">Все магические заказы в одном месте</p>
+      </div>
+
+      <button
+        pButton
+        icon="pi pi-plus"
+        label="Новый заказ"
+        class="magic-button-gold"
+        (click)="createOrder.emit()"
+      ></button>
+    </div>
+
+    <!-- Statistics -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="stat-card bg-purple-600/80">
+        <i class="pi pi-shopping-bag text-2xl mb-2"></i>
+        <span class="text-2xl font-bold">{{ totalOrders() }}</span>
+        <span class="text-sm opacity-80">Всего заказов</span>
+      </div>
+      <div class="stat-card bg-amber-500/80">
+        <i class="pi pi-clock text-2xl mb-2"></i>
+        <span class="text-2xl font-bold">{{ pendingOrders() }}</span>
+        <span class="text-sm opacity-80">В работе</span>
+      </div>
+      <div class="stat-card bg-emerald-500/80">
+        <i class="pi pi-check-circle text-2xl mb-2"></i>
+        <span class="text-2xl font-bold">{{ completedOrders() }}</span>
+        <span class="text-sm opacity-80">Выполнены</span>
+      </div>
+      <div class="stat-card bg-blue-500/80">
+        <i class="pi pi-wallet text-2xl mb-2"></i>
+        <span class="text-2xl font-bold">{{ formattedRevenue() }}</span>
+        <span class="text-sm opacity-80">Общая сумма</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="magic-card overflow-hidden">
+    <p-table
+      #dt
+      [value]="orders()"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[5, 10, 25, 50]"
+      [globalFilterFields]="['potionNumber', 'customerName', 'deliveryAddress', 'status']"
+      [tableStyle]="{ 'min-width': '75rem' }"
+      styleClass="p-datatable-striped"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Показано {first} - {last} из {totalRecords} заказов"
+      responsiveLayout="scroll"
+      dataKey="id"
+    >
+      <!-- table filters -->
+      <ng-template pTemplate="caption">
+        <div class="flex flex-col md:flex-row justify-between gap-4 p-2">
+          <p-iconfield iconPosition="left">
+            <p-inputicon styleClass="pi pi-search"></p-inputicon>
+            <input
+              pInputText
+              type="text"
+              (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+              placeholder="Поиск по заказам..."
+              class="w-full md:w-80"
+            />
+          </p-iconfield>
+
+          <p-select
+            [options]="statusFilterOptions"
+            [(ngModel)]="selectedStatusFilter"
+            (onChange)="filterByStatus($event.value, dt)"
+            placeholder="Фильтр по статусу"
+            [showClear]="true"
+            styleClass="w-full md:w-48"
+          >
+          </p-select>
+        </div>
+      </ng-template>
+
+      <!-- column headings -->
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="potionNumber" style="min-width: 120px">
+            Номер <p-sortIcon field="potionNumber"></p-sortIcon>
+          </th>
+          <th pSortableColumn="customerName" style="min-width: 150px">
+            Заказчик <p-sortIcon field="customerName"></p-sortIcon>
+          </th>
+          <th pSortableColumn="orderDate" style="min-width: 120px">
+            Дата <p-sortIcon field="orderDate"></p-sortIcon>
+          </th>
+          <th pSortableColumn="dueDate" style="min-width: 120px">
+            Выдача <p-sortIcon field="dueDate"></p-sortIcon>
+          </th>
+          <th style="min-width: 150px">Доставка</th>
+          <th pSortableColumn="status" style="min-width: 120px">
+            Статус <p-sortIcon field="status"></p-sortIcon>
+          </th>
+          <th style="min-width: 100px">Ингредиенты</th>
+          <th pSortableColumn="totalCost" style="min-width: 120px">
+            Сумма <p-sortIcon field="totalCost"></p-sortIcon>
+          </th>
+          <th style="min-width: 150px; text-align: center">Действия</th>
+        </tr>
+      </ng-template>
+
+      <!-- data rows -->
+      <ng-template pTemplate="body" let-order>
+        <tr class="hover:bg-purple-50 transition-colors">
+          <td>
+            <span class="font-mono font-semibold text-purple-700">
+              {{ order.potionNumber }}
+            </span>
+          </td>
+          <td>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-user text-amber-500"></i>
+              {{ order.customerName }}
+            </div>
+          </td>
+          <td>{{ order.orderDate | date : 'dd.MM.yyyy' }}</td>
+          <td>
+            <span [class]="isOverdue(order) ? 'text-red-600 font-semibold' : ''">
+              {{ order.dueDate | date : 'dd.MM.yyyy' }}
+              @if (isOverdue(order)) {
+              <i class="pi pi-exclamation-triangle ml-1" pTooltip="Просрочено!"></i>
+              }
+            </span>
+          </td>
+          <td>
+            <div class="text-sm">
+              <div class="flex items-center gap-1">
+                <i class="pi pi-send text-purple-500"></i>
+                {{ order.deliveryMethod }}
+              </div>
+              <div class="text-gray-500 truncate max-w-[150px]" [pTooltip]="order.deliveryAddress">
+                {{ order.deliveryAddress }}
+              </div>
+            </div>
+          </td>
+          <td>
+            <p-tag
+              [value]="order.status"
+              [severity]="getStatusSeverity(order.status)"
+              [rounded]="true"
+            >
+            </p-tag>
+          </td>
+          <td>
+            <span class="flex items-center gap-1">
+              <i class="pi pi-flask text-amber-500"></i>
+              {{ order.ingredients.length }} шт.
+            </span>
+          </td>
+          <td>
+            <span class="font-semibold text-emerald-600">
+              {{ order.totalCost | currency : 'RUB' : 'symbol' : '1.0-0' : 'ru' }}
+            </span>
+          </td>
+          <td>
+            <div class="flex justify-center gap-1">
+              <button
+                pButton
+                icon="pi pi-eye"
+                class="p-button-rounded p-button-text p-button-info"
+                pTooltip="Просмотр"
+                (click)="viewOrder.emit(order)"
+              ></button>
+              <button
+                pButton
+                icon="pi pi-pencil"
+                class="p-button-rounded p-button-text p-button-warning"
+                pTooltip="Редактировать"
+                (click)="editOrder.emit(order)"
+              ></button>
+              <button
+                pButton
+                icon="pi pi-trash"
+                class="p-button-rounded p-button-text p-button-danger"
+                pTooltip="Удалить"
+                (click)="confirmDelete(order)"
+              ></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- empty -->
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="text-center py-8">
+            <div class="flex flex-col items-center text-gray-500">
+              <i class="pi pi-inbox text-5xl mb-4"></i>
+              <span class="text-xl">Заказов пока нет</span>
+              <span class="text-sm">Создайте первый магический заказ!</span>
+              <button
+                pButton
+                icon="pi pi-plus"
+                label="Создать заказ"
+                class="magic-button mt-4"
+                (click)="createOrder.emit()"
+              ></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- delete confirm -->
+  <p-confirmDialog
+    header="Подтверждение удаления"
+    icon="pi pi-exclamation-triangle"
+    acceptLabel="Удалить"
+    rejectLabel="Отмена"
+    acceptButtonStyleClass="p-button-danger"
+    rejectButtonStyleClass="p-button-secondary"
+  >
+  </p-confirmDialog>
+</div>

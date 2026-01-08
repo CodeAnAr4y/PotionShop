@@ -1,0 +1,292 @@
+<div class="order-form-container">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- main info -->
+    <div class="magic-card p-6 mb-6">
+      <h3 class="text-xl font-semibold text-purple-700 mb-4 flex items-center">
+        <i class="pi pi-info-circle mr-2 text-amber-500"></i>
+        Основная информация
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- potion number -->
+        <div class="field">
+          <label class="magic-label" for="potionNumber">
+            <i class="pi pi-hashtag mr-1"></i>Номер зелья *
+          </label>
+          <input
+            id="potionNumber"
+            type="text"
+            pInputText
+            formControlName="potionNumber"
+            class="w-full"
+            placeholder="PS-XXXXX-XXX"
+            [readonly]="editMode()"
+          />
+          @if (form.controls.potionNumber.invalid && form.controls.potionNumber.touched) {
+          <small class="validation-error">
+            <i class="pi pi-exclamation-circle"></i>
+            Номер зелья обязателен
+          </small>
+          }
+        </div>
+
+        <!-- customer name -->
+        <div class="field">
+          <label class="magic-label" for="customerName">
+            <i class="pi pi-user mr-1"></i>Заказчик *
+          </label>
+          <input
+            id="customerName"
+            type="text"
+            pInputText
+            formControlName="customerName"
+            class="w-full"
+            placeholder="Имя клиента"
+          />
+          @if (form.controls.customerName.invalid && form.controls.customerName.touched) {
+          <small class="validation-error">
+            <i class="pi pi-exclamation-circle"></i>
+            @if (form.controls.customerName.errors?.['required']) { Укажите имя заказчика } @if
+            (form.controls.customerName.errors?.['minlength']) { Минимум 2 символа }
+          </small>
+          }
+        </div>
+
+        <!-- status -->
+        @if (editMode()) {
+        <div class="field">
+          <label class="magic-label" for="status"> <i class="pi pi-flag mr-1"></i>Статус </label>
+          <p-select
+            id="status"
+            formControlName="status"
+            [options]="statusOptions"
+            placeholder="Выберите статус"
+          >
+          </p-select>
+        </div>
+        }
+
+        <!-- date -->
+        <div class="field">
+          <label class="magic-label" for="orderDate">
+            <i class="pi pi-calendar mr-1"></i>Дата заказа *
+          </label>
+          <p-datepicker
+            id="orderDate"
+            formControlName="orderDate"
+            [showIcon]="true"
+            [showButtonBar]="true"
+            dateFormat="dd.mm.yy"
+            placeholder="Выберите дату"
+          >
+          </p-datepicker>
+          @if (form.controls.orderDate.invalid && form.controls.orderDate.touched) {
+          <small class="validation-error">
+            <i class="pi pi-exclamation-circle"></i>
+            Укажите дату заказа
+          </small>
+          }
+        </div>
+
+        <!-- when ready -->
+        <div class="field">
+          <label class="magic-label" for="dueDate">
+            <i class="pi pi-calendar-plus mr-1"></i>Дата готовности *
+          </label>
+          <p-datepicker
+            id="dueDate"
+            formControlName="dueDate"
+            [showIcon]="true"
+            [showButtonBar]="true"
+            [minDate]="minDueDate()"
+            dateFormat="dd.mm.yy"
+            placeholder="Выберите дату"
+          >
+          </p-datepicker>
+          @if (form.controls.dueDate.invalid && form.controls.dueDate.touched) {
+          <small class="validation-error">
+            <i class="pi pi-exclamation-circle"></i>
+            Укажите дату готовности
+          </small>
+          } @if (form.errors?.['dueDateInvalid']) {
+          <small class="validation-error">
+            <i class="pi pi-exclamation-circle"></i>
+            Дата готовности должна быть позже даты заказа
+          </small>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- delivery and payments -->
+    <div class="magic-card p-6 mb-6">
+      <h3 class="text-xl font-semibold text-purple-700 mb-4 flex items-center">
+        <i class="pi pi-send mr-2 text-amber-500"></i>
+        Доставка и оплата
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- address -->
+        <div class="field lg:col-span-2">
+          <label class="magic-label" for="deliveryAddress">
+            <i class="pi pi-map-marker mr-1"></i>Адрес доставки *
+          </label>
+          <input
+            id="deliveryAddress"
+            type="text"
+            pInputText
+            formControlName="deliveryAddress"
+            class="w-full"
+            placeholder="Укажите полный адрес доставки"
+          />
+          @if (form.controls.deliveryAddress.invalid && form.controls.deliveryAddress.touched) {
+          <small class="validation-error">
+            <i class="pi pi-exclamation-circle"></i>
+            @if (form.controls.deliveryAddress.errors?.['required']) { Укажите адрес } @if
+            (form.controls.deliveryAddress.errors?.['minlength']) { Минимум 10 символов }
+          </small>
+          }
+        </div>
+
+        <!-- delivery type -->
+        <div class="field">
+          <label class="magic-label" for="deliveryMethod">
+            <i class="pi pi-truck mr-1"></i>Способ доставки *
+          </label>
+          <p-select
+            id="deliveryMethod"
+            formControlName="deliveryMethod"
+            [options]="deliveryMethods"
+            placeholder="Выберите способ"
+          >
+          </p-select>
+          @if (form.controls.deliveryMethod.invalid && form.controls.deliveryMethod.touched) {
+          <small class="validation-error">
+            <i class="pi pi-exclamation-circle"></i>
+            Выберите способ доставки
+          </small>
+          }
+        </div>
+
+        <!-- how to pay -->
+        <div class="field">
+          <label class="magic-label" for="paymentMethod">
+            <i class="pi pi-wallet mr-1"></i>Способ оплаты *
+          </label>
+          <p-select
+            id="paymentMethod"
+            formControlName="paymentMethod"
+            [options]="paymentMethods"
+            placeholder="Выберите способ"
+          >
+          </p-select>
+          @if (form.controls.paymentMethod.invalid && form.controls.paymentMethod.touched) {
+          <small class="validation-error">
+            <i class="pi pi-exclamation-circle"></i>
+            Выберите способ оплаты
+          </small>
+          }
+        </div>
+
+        <!-- notes -->
+        <div class="field lg:col-span-2">
+          <label class="magic-label" for="notes">
+            <i class="pi pi-pencil mr-1"></i>Примечания
+          </label>
+          <input
+            id="notes"
+            type="text"
+            pInputText
+            formControlName="notes"
+            class="w-full"
+            placeholder="Дополнительная информация"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- ingredients -->
+    <div class="magic-card p-6 mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold text-purple-700">
+          Ингредиенты зелья
+          <div class="text-sm font-normal text-gray-500">(минимум 3)</div>
+        </h3>
+
+        <button
+          type="button"
+          pButton
+          icon="pi pi-plus"
+          label="Добавить"
+          class="magic-button-gold"
+          (click)="addIngredient()"
+          pTooltip="Добавить новый ингредиент"
+        ></button>
+      </div>
+
+      <!-- error if less then minimum -->
+      @if (ingredientsArray.errors?.['minIngredients'] && ingredientsArray.touched) {
+      <p-message
+        severity="warn"
+        text="Необходимо добавить минимум 3 ингредиента (сейчас: {{ ingredientsArray.length }})"
+        styleClass="mb-4 w-full"
+      >
+      </p-message>
+      }
+
+      <!-- list of ingredients -->
+      <div class="flex flex-col gap-4" formArrayName="ingredients">
+        @for (ingredient of ingredientsArray.controls; track trackByIndex($index); let i = $index) {
+        <app-ingredient-input
+          [formControlName]="i"
+          [index]="i"
+          [canRemove]="ingredientsArray.length > 1"
+          (click)="checkIngredientRemoval(i)"
+          class="space-y-4"
+        >
+        </app-ingredient-input>
+        }
+      </div>
+
+      @if (ingredientsArray.length === 0) {
+      <div class="text-center py-8 text-gray-500">
+        <i class="pi pi-inbox text-4xl mb-2"></i>
+        <p>Нет добавленных ингредиентов</p>
+        <p class="text-sm">Нажмите "Добавить" для добавления ингредиента</p>
+      </div>
+      }
+
+      <!-- sum -->
+      <p-divider></p-divider>
+      <div class="flex justify-between items-center text-xl">
+        <span class="font-semibold text-purple-700">
+          <i class="pi pi-shopping-cart mr-2"></i>
+          Общая стоимость:
+        </span>
+        <span class="text-2xl font-bold text-amber-600">
+          {{ totalCost() | currency : 'RUB' : 'symbol' : '1.0-0' : 'ru' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- action btn -->
+    <div class="flex flex-col sm:flex-row justify-end gap-3">
+      <button
+        type="button"
+        pButton
+        icon="pi pi-times"
+        label="Отмена"
+        class="p-button-secondary"
+        (click)="onCancel()"
+      ></button>
+      <button
+        type="submit"
+        pButton
+        icon="pi pi-check"
+        [label]="editMode() ? 'Сохранить' : 'Создать заказ'"
+        class="magic-button"
+        [disabled]="form.invalid || isSubmitting()"
+      ></button>
+    </div>
+  </form>
+</div>

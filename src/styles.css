@@ -1,0 +1,226 @@
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+
+/* palette */
+:root {
+  --magic-purple: #6b21a8;
+  --magic-purple-light: #a855f7;
+  --magic-gold: #f59e0b;
+  --magic-gold-light: #fbbf24;
+  --magic-emerald: #059669;
+  --magic-dark: #1e1b4b;
+  --magic-mist: #e0e7ff;
+  --parchment: #fef3c7;
+  --parchment-dark: #fde68a;
+}
+/* Base */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, var(--magic-dark) 0%, #312e81 50%, var(--magic-purple) 100%);
+  min-height: 100vh;
+  color: #1f2937;
+}
+
+/* background & particles */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(2px 2px at 20px 30px, var(--magic-gold-light), transparent),
+    radial-gradient(2px 2px at 40px 70px, var(--magic-purple-light), transparent),
+    radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+    radial-gradient(2px 2px at 130px 80px, var(--magic-gold), transparent),
+    radial-gradient(1px 1px at 160px 120px, var(--magic-purple-light), transparent);
+  background-size: 100px 100px;
+  animation: sparkle 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* cards */
+.magic-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 231, 167, 0.9) 100%);
+  border: 1px solid var(--magic-gold);
+  border-radius: 16px;
+  position: relative;
+}
+
+/* headings */
+.magic-title {
+  color: var(--magic-gold);
+  background-clip: text;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* buttons */
+.magic-button {
+  background: linear-gradient(135deg, var(--magic-purple) 0%, var(--magic-purple-light) 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.magic-button:hover {
+  transform: translateY(-2px);
+}
+
+.magic-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.magic-button-gold {
+  background: linear-gradient(135deg, var(--magic-gold) 0%, var(--magic-gold-light) 100%);
+}
+
+/* inputs */
+.magic-input {
+  border: 2px solid var(--magic-mist);
+  border-radius: 8px;
+  padding: 10px 14px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.magic-input:focus {
+  outline: none;
+  border-color: var(--magic-purple-light);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+.magic-input.ng-invalid.ng-touched {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* labels */
+.magic-label {
+  color: var(--magic-purple);
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* validation errors */
+.validation-error {
+  color: #dc2626;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* table */
+.magic-table {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* potion icon with animation */
+.potion-bubble {
+  animation: bubble 2s ease-in-out infinite;
+}
+
+@keyframes bubble {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* adaptability */
+@media (max-width: 768px) {
+  .magic-card {
+    margin: 8px;
+    padding: 16px;
+  }
+}
+
+/* custom primeng */
+.p-datatable .p-datatable-thead > tr > th {
+  font-weight: 600;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: var(--magic-mist) !important;
+}
+
+.p-dialog .p-dialog-header {
+  background: linear-gradient(135deg, var(--magic-purple) 0%, var(--magic-purple-light) 100%);
+  color: white;
+  border-radius:  12px 12px 0 0;
+}
+
+.p-dialog .p-dialog-header .p-dialog-title {
+  color: white;
+  font-weight: 600;
+}
+
+.p-button.p-button-success {
+  background: var(--magic-emerald);
+}
+
+.p-dropdown,
+.p-calendar,
+.p-inputnumber {
+  width: 100%;
+}
+
+/* appearence animation */
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* scroll */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--magic-mist);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--magic-purple-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--magic-purple);
+}
