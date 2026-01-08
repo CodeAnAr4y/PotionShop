@@ -8,8 +8,6 @@ import {
   computed,
   effect,
   viewChildren,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -23,7 +21,6 @@ import {
 } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
-// PrimeNG
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -41,11 +38,11 @@ import {
   PaymentMethod,
   DELIVERY_METHODS,
   PAYMENT_METHODS,
+  IngredientUnit,
 } from '../../models/order.model';
 import { OrderService } from '../../services/order';
 import { IngredientInput } from '../ingredient-input/ingredient-input';
 
-// Validators
 function dueDateAfterOrderDate(control: AbstractControl): ValidationErrors | null {
   const formGroup = control as FormGroup;
   const orderDate = formGroup.get('orderDate')?.value;
@@ -67,10 +64,17 @@ function minIngredients(min: number) {
   };
 }
 
+type IngredientGroup = FormGroup<{
+  id: FormControl<number>;
+  name: FormControl<string>;
+  quantity: FormControl<number | null>;
+  unit: FormControl<IngredientUnit>;
+  pricePerUnit: FormControl<number | null>;
+}>;
+
 @Component({
   selector: 'app-order-form',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -89,23 +93,19 @@ function minIngredients(min: number) {
   styleUrl: './order-form.css',
 })
 export class OrderForm implements OnInit, OnDestroy {
-  // params
   order = input<PotionOrder | null>(null);
   saved = output<PotionOrder>();
   cancelled = output<void>();
 
   ingredientInputs = viewChildren(IngredientInput);
 
-  // states
   editMode = signal(false);
   isSubmitting = signal(false);
 
-  // static data
   readonly deliveryMethods: DeliveryMethod[] = DELIVERY_METHODS;
   readonly paymentMethods: PaymentMethod[] = PAYMENT_METHODS;
   readonly statusOptions = ['Новый', 'В работе', 'Готов', 'Доставлен', 'Отменён'];
 
-  // form
   form = new FormGroup(
     {
       potionNumber: new FormControl<string>('', [Validators.required]),
@@ -117,20 +117,19 @@ export class OrderForm implements OnInit, OnDestroy {
       paymentMethod: new FormControl<PaymentMethod | null>(null, [Validators.required]),
       status: new FormControl<string>('Новый'),
       notes: new FormControl<string>(''),
-      ingredients: new FormArray<FormControl<Ingredient>>([], [minIngredients(3)]),
+      ingredients: new FormArray<IngredientGroup>([], [minIngredients(3)]),
     },
     { validators: dueDateAfterOrderDate }
   );
 
-  // ingredients change detector
   private ingredientsVersion = signal(0);
 
-  // Computed total cost
   totalCost = computed(() => {
     this.ingredientsVersion();
-    return this.ingredientsArray.controls.reduce((sum, control) => {
-      const ing = control.value;
-      return sum + (ing?.quantity || 0) * (ing?.pricePerUnit || 0);
+    return this.ingredientsArray.controls.reduce((sum, group) => {
+      const qty = group.controls.quantity.value ?? 0;
+      const price = group.controls.pricePerUnit.value ?? 0;
+      return sum + qty * price;
     }, 0);
   });
 
@@ -146,7 +145,7 @@ export class OrderForm implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
-  constructor(private orderService: OrderService, private cdr: ChangeDetectorRef) {
+  constructor(private orderService: OrderService) {
     effect(() => {
       const orderData = this.order();
       if (orderData) {
@@ -159,7 +158,7 @@ export class OrderForm implements OnInit, OnDestroy {
     });
   }
 
-  get ingredientsArray(): FormArray<FormControl<Ingredient>> {
+  get ingredientsArray(): FormArray<IngredientGroup> {
     return this.form.controls.ingredients;
   }
 
@@ -167,7 +166,6 @@ export class OrderForm implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.ingredientsArray.valueChanges.subscribe(() => {
         this.ingredientsVersion.update((v) => v + 1);
-        this.cdr.markForCheck();
       })
     );
 
@@ -182,6 +180,19 @@ export class OrderForm implements OnInit, OnDestroy {
 
   trackByIndex(index: number): number {
     return index;
+  }
+
+  private createIngredientGroup(ing: Ingredient): IngredientGroup {
+    return new FormGroup({
+      id: new FormControl<number>(ing.id, { nonNullable: true }),
+      name: new FormControl<string>(ing.name, { nonNullable: true, validators: [Validators.required] }),
+      quantity: new FormControl<number | null>(ing.quantity, [Validators.required, Validators.min(0.1)]),
+      unit: new FormControl<IngredientUnit>(ing.unit as IngredientUnit, {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      pricePerUnit: new FormControl<number | null>(ing.pricePerUnit, [Validators.required, Validators.min(0)]),
+    });
   }
 
   private initNewOrder(): void {
@@ -201,8 +212,6 @@ export class OrderForm implements OnInit, OnDestroy {
     for (let i = 0; i < 3; i++) {
       this.addIngredient();
     }
-
-    this.cdr.markForCheck();
   }
 
   private populateForm(order: PotionOrder): void {
@@ -220,10 +229,10 @@ export class OrderForm implements OnInit, OnDestroy {
 
     this.ingredientsArray.clear();
     order.ingredients.forEach((ing) => {
-      this.ingredientsArray.push(new FormControl<Ingredient>(ing, { nonNullable: true }));
+      this.ingredientsArray.push(this.createIngredientGroup(ing));
     });
 
-    this.cdr.markForCheck();
+    this.ingredientsVersion.update((v) => v + 1);
   }
 
   addIngredient(): void {
@@ -235,10 +244,8 @@ export class OrderForm implements OnInit, OnDestroy {
       pricePerUnit: 0,
     };
 
-    this.ingredientsArray.push(new FormControl<Ingredient>(newIngredient, { nonNullable: true }));
-
+    this.ingredientsArray.push(this.createIngredientGroup(newIngredient));
     this.ingredientsVersion.update((v) => v + 1);
-    this.cdr.markForCheck();
   }
 
   checkIngredientRemoval(index: number): void {
@@ -254,14 +261,12 @@ export class OrderForm implements OnInit, OnDestroy {
     if (this.ingredientsArray.length > 1) {
       this.ingredientsArray.removeAt(index);
       this.ingredientsVersion.update((v) => v + 1);
-      this.cdr.markForCheck();
     }
   }
 
   onSubmit(): void {
     if (this.form.invalid) {
       this.markFormGroupTouched(this.form);
-      this.cdr.markForCheck();
       return;
     }
 
@@ -279,7 +284,13 @@ export class OrderForm implements OnInit, OnDestroy {
       paymentMethod: formValue.paymentMethod!,
       status: formValue.status as PotionOrder['status'],
       notes: formValue.notes || undefined,
-      ingredients: formValue.ingredients,
+      ingredients: formValue.ingredients.map((g) => ({
+        id: g.id,
+        name: g.name,
+        quantity: g.quantity ?? 0,
+        unit: g.unit,
+        pricePerUnit: g.pricePerUnit ?? 0,
+      })),
     };
 
     try {
@@ -295,7 +306,6 @@ export class OrderForm implements OnInit, OnDestroy {
       this.saved.emit(result);
     } finally {
       this.isSubmitting.set(false);
-      this.cdr.markForCheck();
     }
   }
 

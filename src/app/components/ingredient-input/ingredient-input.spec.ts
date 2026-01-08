@@ -1,27 +1,71 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { IngredientInput } from './ingredient-input';
-import { Ingredient } from '../../models/order.model';
-import { AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
+import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { registerLocaleData } from '@angular/common';
 import localeRu from '@angular/common/locales/ru';
+
+import { IngredientInput } from './ingredient-input';
+import { IngredientUnit } from '../../models/order.model';
+import { AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 
 beforeAll(() => {
   registerLocaleData(localeRu, 'ru');
 });
 
-describe('IngredientInput', () => {
+@Component({
+  standalone: true,
+  imports: [ReactiveFormsModule, IngredientInput],
+  template: `
+    <form [formGroup]="form">
+      <div formArrayName="ingredients">
+        <app-ingredient-input
+          [formGroupName]="0"
+          [index]="0"
+          [canRemove]="true"
+        ></app-ingredient-input>
+      </div>
+    </form>
+  `,
+})
+class HostComponent {
+  form = new FormGroup({
+    ingredients: new FormArray<FormGroup>([
+      new FormGroup({
+        id: new FormControl<number>(1, { nonNullable: true }),
+        name: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+        quantity: new FormControl<number | null>(1, [Validators.required, Validators.min(0.1)]),
+        unit: new FormControl<IngredientUnit>('г', {
+          nonNullable: true,
+          validators: [Validators.required],
+        }),
+        pricePerUnit: new FormControl<number | null>(0, [Validators.required, Validators.min(0)]),
+      }),
+    ]),
+  });
+
+  get ingredientGroup(): FormGroup {
+    return (this.form.get('ingredients') as FormArray).at(0) as FormGroup;
+  }
+}
+
+describe('IngredientInput (new logic)', () => {
+  let host: HostComponent;
+  let fixture: ComponentFixture<HostComponent>;
   let component: IngredientInput;
-  let fixture: ComponentFixture<IngredientInput>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [IngredientInput, ReactiveFormsModule],
+      imports: [HostComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(IngredientInput);
-    component = fixture.componentInstance;
+    fixture = TestBed.createComponent(HostComponent);
+    host = fixture.componentInstance;
     fixture.detectChanges();
+
+    const ingredientDE = fixture.debugElement.query(
+      (de) => de.componentInstance instanceof IngredientInput
+    );
+    component = ingredientDE.componentInstance as IngredientInput;
   });
 
   describe('Component initialization', () => {
@@ -29,114 +73,38 @@ describe('IngredientInput', () => {
       expect(component).toBeTruthy();
     });
 
-    it('must have a form with necessary controls', () => {
-      expect(component.form.controls.name).toBeDefined();
-      expect(component.form.controls.quantity).toBeDefined();
-      expect(component.form.controls.unit).toBeDefined();
-      expect(component.form.controls.pricePerUnit).toBeDefined();
-    });
-  });
-
-  describe('ControlValueAccessor', () => {
-    it('must write value through writeValue', () => {
-      const testIngredient: Ingredient = {
-        id: 1,
-        name: 'Корень мандрагоры',
-        quantity: 50,
-        unit: 'г',
-        pricePerUnit: 100,
-      };
-
-      component.writeValue(testIngredient);
-
-      expect(component.form.controls.name.value).toBe('Корень мандрагоры');
-      expect(component.form.controls.quantity.value).toBe(50);
-      expect(component.form.controls.unit.value).toBe('г');
-      expect(component.form.controls.pricePerUnit.value).toBe(100);
-    });
-
-    it('must handle null in writeValue', () => {
-      component.writeValue(null);
-      expect(component.form.controls.name.value).toBe('');
-    });
-
-    it('must evoke onChange', () => {
-      let called = false;
-      component.registerOnChange(() => {
-        called = true;
-      });
-
-      component.form.controls.name.setValue('Тест');
-
-      expect(called).toBe(true);
-    });
-
-    it('must disable form through setDisabledState', () => {
-      component.setDisabledState(true);
-      expect(component.form.disabled).toBe(true);
-
-      component.setDisabledState(false);
-      expect(component.form.enabled).toBe(true);
-    });
-  });
-
-  describe('Validation', () => {
-    it('must be invalid when empty name', () => {
-      component.form.controls.name.setValue('');
-      component.form.controls.name.markAsTouched();
-
-      const errors = component.validate(new FormControl());
-
-      expect(errors).not.toBeNull();
-      expect(errors!['name']).toBeDefined();
-    });
-
-    it('must be invalid when quantity less then 0.1', () => {
-      component.form.controls.quantity.setValue(0);
-      component.form.controls.quantity.markAsTouched();
-
-      const errors = component.validate(new FormControl());
-
-      expect(errors).not.toBeNull();
-      expect(errors!['quantity']).toBeDefined();
-    });
-
-    it('must be valid', () => {
-      component.form.patchValue({
-        name: 'test',
-        quantity: 10,
-        unit: 'г',
-        pricePerUnit: 100,
-      });
-
-      const errors = component.validate(new FormControl());
-
-      expect(errors).toBeNull();
+    it('must have group with necessary controls', () => {
+      expect(component.group.get('name')).toBeTruthy();
+      expect(component.group.get('quantity')).toBeTruthy();
+      expect(component.group.get('unit')).toBeTruthy();
+      expect(component.group.get('pricePerUnit')).toBeTruthy();
     });
   });
 
   describe('Count cost', () => {
     it('must correctly count cost of ingredients', () => {
-      component.form.patchValue({
+      host.ingredientGroup.patchValue({
         quantity: 5,
         pricePerUnit: 100,
       });
+      fixture.detectChanges();
 
       expect(component.ingredientTotal()).toBe(500);
     });
 
     it('must return 0', () => {
-      component.form.patchValue({
+      host.ingredientGroup.patchValue({
         quantity: 0,
         pricePerUnit: 0,
       });
+      fixture.detectChanges();
 
       expect(component.ingredientTotal()).toBe(0);
     });
   });
 
   describe('Autocomplete', () => {
-    it('must sort ingredients by request', () => {
+    it('must filter ingredients by request', () => {
       const mockEvent: AutoCompleteCompleteEvent = {
         originalEvent: new Event('input'),
         query: 'корень',
@@ -149,21 +117,21 @@ describe('IngredientInput', () => {
     });
 
     it('must substitute values when selecting an ingredient', () => {
-      // Создаём мок события с правильным типом
       const mockEvent: AutoCompleteSelectEvent = {
         originalEvent: new Event('select'),
         value: 'Корень мандрагоры',
       };
 
       component.onIngredientSelect(mockEvent);
+      fixture.detectChanges();
 
-      expect(component.form.controls.unit.value).toBe('г');
-      expect(component.form.controls.pricePerUnit.value).toBe(50);
+      expect(host.ingredientGroup.get('unit')!.value).toBe('г');
+      expect(host.ingredientGroup.get('pricePerUnit')!.value).toBe(50);
     });
 
-    it('must not to change a form when non-existent ingredient selected', () => {
-      const initialUnit = component.form.controls.unit.value;
-      const initialPrice = component.form.controls.pricePerUnit.value;
+    it('must not change a form when non-existent ingredient selected', () => {
+      const initialUnit = host.ingredientGroup.get('unit')!.value;
+      const initialPrice = host.ingredientGroup.get('pricePerUnit')!.value;
 
       const mockEvent: AutoCompleteSelectEvent = {
         originalEvent: new Event('select'),
@@ -171,9 +139,10 @@ describe('IngredientInput', () => {
       };
 
       component.onIngredientSelect(mockEvent);
+      fixture.detectChanges();
 
-      expect(component.form.controls.unit.value).toBe(initialUnit);
-      expect(component.form.controls.pricePerUnit.value).toBe(initialPrice);
+      expect(host.ingredientGroup.get('unit')!.value).toBe(initialUnit);
+      expect(host.ingredientGroup.get('pricePerUnit')!.value).toBe(initialPrice);
     });
   });
 
@@ -188,63 +157,53 @@ describe('IngredientInput', () => {
   });
 
   describe('Touch state', () => {
-    it('must mark form as touched', () => {
-      let touchedCalled = false;
-      component.registerOnTouched(() => {
-        touchedCalled = true;
-      });
-
-      component.markAsTouched();
-
-      expect(touchedCalled).toBe(true);
-    });
-
     it('must mark all controls as touched', () => {
       component.markAsTouched();
+      fixture.detectChanges();
 
-      expect(component.form.controls.name.touched).toBe(true);
-      expect(component.form.controls.quantity.touched).toBe(true);
-      expect(component.form.controls.unit.touched).toBe(true);
-      expect(component.form.controls.pricePerUnit.touched).toBe(true);
-    });
-
-    it('must not revoke onTouch again', () => {
-      let callCount = 0;
-      component.registerOnTouched(() => {
-        callCount++;
-      });
-
-      component.markAsTouched();
-      component.markAsTouched();
-      component.markAsTouched();
-
-      expect(callCount).toBe(1);
+      expect(host.ingredientGroup.get('name')!.touched).toBe(true);
+      expect(host.ingredientGroup.get('quantity')!.touched).toBe(true);
+      expect(host.ingredientGroup.get('unit')!.touched).toBe(true);
+      expect(host.ingredientGroup.get('pricePerUnit')!.touched).toBe(true);
     });
   });
 
   describe('showErrors', () => {
-    it('must return false if form is valid', () => {
-      component.form.patchValue({
+    it('must return false if group is valid', () => {
+      host.ingredientGroup.patchValue({
         name: 'Test',
         quantity: 10,
         unit: 'г',
         pricePerUnit: 100,
       });
+      host.ingredientGroup.markAsTouched();
+      fixture.detectChanges();
 
       expect(component.showErrors()).toBe(false);
     });
 
-    it('must return false ifif=s not touched', () => {
-      component.form.controls.name.setValue('');
+    it('must return false if not touched', () => {
+      host.ingredientGroup.patchValue({ name: '' });
+      fixture.detectChanges();
 
       expect(component.showErrors()).toBe(false);
     });
 
-    it('must return true if form is not valid and already touched', () => {
-      component.form.controls.name.setValue('');
+    it('must return true if group is not valid and already touched', () => {
+      host.ingredientGroup.patchValue({ name: '' });
       component.markAsTouched();
+      fixture.detectChanges();
 
       expect(component.showErrors()).toBe(true);
     });
+  });
+
+  it('must throw if used without formGroupName context', () => {
+    const standaloneFixture = TestBed.createComponent(IngredientInput);
+    const standaloneComponent = standaloneFixture.componentInstance;
+
+    expect(() => standaloneComponent.group).toThrowError(
+      'IngredientInput must be used with [formGroupName] inside a FormArray(FormGroup).'
+    );
   });
 });
