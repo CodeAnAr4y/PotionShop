@@ -7,8 +7,6 @@
   border-radius: 12px;
   color: white;
   text-align: center;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 :host ::ng-deep .p-datatable .p-datatable-header {

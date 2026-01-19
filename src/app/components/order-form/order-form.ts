@@ -39,6 +39,7 @@ import {
   DELIVERY_METHODS,
   PAYMENT_METHODS,
   IngredientUnit,
+  AVAILABLE_INGREDIENTS,
 } from '../../models/order.model';
 import { OrderService } from '../../services/order';
 import { IngredientInput } from '../ingredient-input/ingredient-input';
@@ -143,6 +144,16 @@ export class OrderForm implements OnInit, OnDestroy {
     return new Date();
   });
 
+  availableIngredientsFor(index: number): { name: string; defaultPrice: number; unit: IngredientUnit }[] {
+    const selectedNames = this.ingredientsArray.controls
+      .map((c, i) => (i === index ? null : c.controls.name.value))
+      .filter(Boolean);
+  
+    return AVAILABLE_INGREDIENTS.filter(
+      ing => !selectedNames.includes(ing.name)
+    );
+  }
+
   private subscriptions: Subscription[] = [];
 
   constructor(private orderService: OrderService) {
@@ -185,13 +196,22 @@ export class OrderForm implements OnInit, OnDestroy {
   private createIngredientGroup(ing: Ingredient): IngredientGroup {
     return new FormGroup({
       id: new FormControl<number>(ing.id, { nonNullable: true }),
-      name: new FormControl<string>(ing.name, { nonNullable: true, validators: [Validators.required] }),
-      quantity: new FormControl<number | null>(ing.quantity, [Validators.required, Validators.min(0.1)]),
+      name: new FormControl<string>(ing.name, {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      quantity: new FormControl<number | null>(ing.quantity, [
+        Validators.required,
+        Validators.min(0.1),
+      ]),
       unit: new FormControl<IngredientUnit>(ing.unit as IngredientUnit, {
         nonNullable: true,
         validators: [Validators.required],
       }),
-      pricePerUnit: new FormControl<number | null>(ing.pricePerUnit, [Validators.required, Validators.min(0)]),
+      pricePerUnit: new FormControl<number | null>(ing.pricePerUnit, [
+        Validators.required,
+        Validators.min(0),
+      ]),
     });
   }
 

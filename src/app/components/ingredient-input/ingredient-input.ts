@@ -12,7 +12,7 @@ import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { AVAILABLE_INGREDIENTS, INGREDIENT_UNITS } from '../../models/order.model';
+import { AVAILABLE_INGREDIENTS, INGREDIENT_UNITS, IngredientUnit } from '../../models/order.model';
 
 @Component({
   selector: 'app-ingredient-input',
@@ -33,7 +33,7 @@ export class IngredientInput {
   index = input<number>(0);
   canRemove = input<boolean>(true);
 
-  readonly availableIngredients = AVAILABLE_INGREDIENTS;
+  readonly availableIngredients = input<{ name: string; defaultPrice: number; unit: IngredientUnit }[]>([]);
   readonly units = INGREDIENT_UNITS;
 
   filteredIngredients = signal<string[]>([]);
@@ -52,7 +52,7 @@ export class IngredientInput {
   filterIngredients(event: AutoCompleteCompleteEvent): void {
     const query = event.query.toLowerCase();
     this.filteredIngredients.set(
-      this.availableIngredients
+      this.availableIngredients()
         .map((i) => i.name)
         .filter((name) => name.toLowerCase().includes(query))
     );
@@ -60,7 +60,7 @@ export class IngredientInput {
 
   onIngredientSelect(event: AutoCompleteSelectEvent): void {
     const value = event.value as string;
-    const selected = this.availableIngredients.find((i) => i.name === value);
+    const selected = this.availableIngredients().find((i) => i.name === value);
     if (!selected) return;
 
     this.group.patchValue({

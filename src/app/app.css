@@ -15,22 +15,42 @@
   padding-bottom: 100px;
 }
 
+.icons {
+  position: relative;
+  min-width: 80px;
+}
+
 .potion-icon {
   animation: float 3s ease-in-out infinite;
   font-size: 40px;
 }
 
-.potion-icon:last-child {
-  animation-delay: 1.5s;
+.test-tube {
+  rotate: -80deg;
+  position: absolute;
+  top: 25px;
+  left: 40px;
+  font-size: 20px;
+  animation: float-2 3s ease-in-out infinite;
 }
 
 @keyframes float {
   0%,
   100% {
-    transform: translateY(0px) rotate(0deg);
+    transform: rotate(0deg);
   }
   50% {
-    transform: translateY(-8px) rotate(10deg);
+    transform: rotate(40deg);
+  }
+}
+
+@keyframes float-2 {
+  0%,
+  100% {
+    transform: translate(0px, 0px) rotate(40deg);
+  }
+  50% {
+    transform: translate(8px, -4px) rotate(0deg);
   }
 }
 

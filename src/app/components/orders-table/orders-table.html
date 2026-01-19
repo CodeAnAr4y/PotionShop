@@ -20,7 +20,7 @@
     </div>
 
     <!-- Statistics -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <div class="stat-card bg-purple-600/80">
         <i class="pi pi-shopping-bag text-2xl mb-2"></i>
         <span class="text-2xl font-bold">{{ totalOrders() }}</span>
@@ -54,17 +54,15 @@
       [rowsPerPageOptions]="[5, 10, 25, 50]"
       [globalFilterFields]="['potionNumber', 'customerName', 'deliveryAddress', 'status']"
       [tableStyle]="{ 'min-width': '75rem' }"
-      styleClass="p-datatable-striped"
       [showCurrentPageReport]="true"
       currentPageReportTemplate="Показано {first} - {last} из {totalRecords} заказов"
-      responsiveLayout="scroll"
       dataKey="id"
     >
       <!-- table filters -->
       <ng-template pTemplate="caption">
         <div class="flex flex-col md:flex-row justify-between gap-4 p-2">
           <p-iconfield iconPosition="left">
-            <p-inputicon styleClass="pi pi-search"></p-inputicon>
+            <p-inputicon class="pi pi-search"></p-inputicon>
             <input
               pInputText
               type="text"
@@ -80,7 +78,6 @@
             (onChange)="filterByStatus($event.value, dt)"
             placeholder="Фильтр по статусу"
             [showClear]="true"
-            styleClass="w-full md:w-48"
           >
           </p-select>
         </div>
@@ -89,19 +86,19 @@
       <!-- column headings -->
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="potionNumber" style="min-width: 120px">
+          <th pSortableColumn="potionNumber" style="min-width: 150px">
             Номер <p-sortIcon field="potionNumber"></p-sortIcon>
           </th>
-          <th pSortableColumn="customerName" style="min-width: 150px">
+          <th pSortableColumn="customerName" style="min-width: 120px">
             Заказчик <p-sortIcon field="customerName"></p-sortIcon>
           </th>
           <th pSortableColumn="orderDate" style="min-width: 120px">
             Дата <p-sortIcon field="orderDate"></p-sortIcon>
           </th>
-          <th pSortableColumn="dueDate" style="min-width: 120px">
+          <th pSortableColumn="dueDate" style="min-width: 150px">
             Выдача <p-sortIcon field="dueDate"></p-sortIcon>
           </th>
-          <th style="min-width: 150px">Доставка</th>
+          <th style="min-width: 100px">Доставка</th>
           <th pSortableColumn="status" style="min-width: 120px">
             Статус <p-sortIcon field="status"></p-sortIcon>
           </th>
@@ -109,15 +106,15 @@
           <th pSortableColumn="totalCost" style="min-width: 120px">
             Сумма <p-sortIcon field="totalCost"></p-sortIcon>
           </th>
-          <th style="min-width: 150px; text-align: center">Действия</th>
+          <th style="min-width: 120px; text-align: center">Действия</th>
         </tr>
       </ng-template>
 
       <!-- data rows -->
       <ng-template pTemplate="body" let-order>
-        <tr class="hover:bg-purple-50 transition-colors">
+        <tr class="hover:bg-purple-50">
           <td>
-            <span class="font-mono font-semibold text-purple-700">
+            <span class="font-mono font-semibold">
               {{ order.potionNumber }}
             </span>
           </td>

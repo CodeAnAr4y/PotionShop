@@ -223,6 +223,7 @@
           <app-ingredient-input
             [formGroupName]="i"
             [index]="i"
+            [availableIngredients]="availableIngredientsFor(i)"
             [canRemove]="ingredientsArray.length > 1"
             (click)="checkIngredientRemoval(i)"
             class="space-y-4"
